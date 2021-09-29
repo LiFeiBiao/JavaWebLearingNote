@@ -156,3 +156,11 @@ continue：循环结构中；结束该次循环；lable关键字的使用
 
 1. 数组角标越界异常ArrrayIndexOutOfBoundsException
 2. 空指针异常NullPointerException
+
+#### Java关键字
+
+- ```
+  native 
+  native关键字说明其修饰的方法是一个原生态方法，方法对应的实现不是在当前文件，而是在用其他语言（如C和C++）实现的文件中。Java语言本身不能对操作系统底层进行访问和操作，但是可以通过JNI接口调用其他语言来实现对底层的访问。
+  ```
+
