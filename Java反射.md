@@ -2,7 +2,7 @@
    1. Junit单元测试
    2. 反射
    3. 注解
-   
+
 
 ## Junit单元测试：
    * 测试分类:     
@@ -35,17 +35,17 @@
 
 ## 反射：框架的灵魂
   * 框架：半成品软件。可以在框架的基础上进行软件开发，简化编码
-  * 反射：将类的各个组成部分封装为其他对象，这就是反射机制   
+  * 反射：**将类的各个组成部分封装为其他对象，这就是反射机制**   
       * 好处：      
-          1. 可以在程序运行过程中，操作这些对象。  
-          2. 可以解耦，提高程序的可扩展性。
+          1. **可以在程序运行过程中，操作这些对象。**  
+          2. **可以解耦，提高程序的可扩展性。**
   
   * 获取Class对象的方式   
-       1. Class.forName（"全类名"）;将字节码文件加载进内存，返回Class对象   
+       1. **Class.forName（"全类名"）**;将字节码文件加载进内存，返回Class对象   
              * 多用于配置文件，将类名定义在配置文件中。读取文件，加载类
-       2. 类名.class：通过类名的属性class获取   
+       2. **类名.class**：通过类名的属性class获取   
              * 多用于参数的传递
-       3. 对象.getClass(): getClass()方法在Object类中定义着。   
+       3. **对象.getClass()**: getClass()方法在Object类中定义着。   
              * 多用于对象的获取字节码的方式
        * 结论：   
             同一个字节码文件（.class）在一次程序运行过程中，只会被加载一次，不论通过哪一种方式获取的Class对象都是同一个。   
@@ -68,7 +68,7 @@
               *  Method getMethod(String name, Class<?>... parameterTypes) 
               *  Method[] getDeclaredMethods()  
               *  Method getDeclaredMethod(String name, Class<?>... parameterTypes) 
- 
+
           4. 获取类名   
               *  String getName()  
 
@@ -103,7 +103,7 @@
             3. 使用反射技术来加载类文件进内存
             4. 创建对象
             5. 执行方法
- 
+
 
 ## 注解   
   * 概念：说明程序的，给计算机看的。  
@@ -128,7 +128,7 @@
    * 格式：
          元注解  
          public @interface 注解名称{}
-         
+     
    * 本质：注解本质上是一个接口，该接口默认继承Annotation接口
       * public interface MyAnno extends java.lang.annotation.Annotation{}
    * 属性：接口中抽象方法
@@ -154,14 +154,14 @@
          * @Retention（RetentionPolicy.RUNTIME):当前被描述的注解，会保留到class字节码文件中，并被JVM读取到
       * @Documented:描述注解是否被抽取到api文档中
       * @Inherited:描述注解是否被继承
-         
-     
+        
+   
 * 在程序中使用（解析）注解：获取注解中的属性值
    1. 获取注解定义位置的对象（Class，Method，Field）
    2. 获取指定的注解
       * getAnnotation(class)
       其实就是在内存中生成一个该注解接口的子类实现对象
-   3.调用注解中的抽象方法获取配置的属性值 
+      3.调用注解中的抽象方法获取配置的属性值 
 
 
 * 小结：
@@ -173,14 +173,14 @@
 
 
 
-     
+​     
 
   
 
-              
+​              
 
-             
-                       
 
-        
+​                       
+
+​        
 
