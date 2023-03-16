@@ -1,6 +1,20 @@
-# Java电商秒杀实战
+#  Java电商秒杀实战
+
+## 课程介绍
+
+#### 技术点
+
+![image-20230223110755713](C:\Users\17391\AppData\Roaming\Typora\typora-user-images\image-20230223110755713.png)
+
+![image-20230223111102165](C:\Users\17391\AppData\Roaming\Typora\typora-user-images\image-20230223111102165.png)
+
+![image-20230223111549495](C:\Users\17391\AppData\Roaming\Typora\typora-user-images\image-20230223111549495.png)
+
+![image-20230223111903773](C:\Users\17391\AppData\Roaming\Typora\typora-user-images\image-20230223111903773.png)
 
 ## 项目环境搭建
+
+集成Redis：1、添加Jedis依赖，2、添加Fastjson（对象序列化）依赖
 
 ### 配置redis
 
@@ -206,11 +220,13 @@ springboot环境搭建
 
 ## 实现登录功能
 
+![image-20230223112028990](C:\Users\17391\AppData\Roaming\Typora\typora-user-images\image-20230223112028990.png)
+
 - 数据库设计
 - 明文密码两次MD5处理
   1. 用户端：PASS = MD5（明文 + 固定Salt）**防止用户的明文密码在网络上传输**
-  2. 服务端：PASS = MD5（用户输入 + 随机Salt）第二次将处理过的密码存入数据库
-- JSR303参数检验+全局异常处理器
+  2. 服务端：PASS = MD5（用户输入 + 随机Salt）第二次将提交到服务器端的处理过的密码与salt存入数据库
+- **JSR303参数检验+全局异常处理器**（参数校验(**自定义注解**)实现对登录手机号等参数的检查，当参数错误的时候抛出自定义的全局异常并进行处理，返回对应的错误信息显示给用户）
 - 分布式Session
 
 ### 前端设计
@@ -226,11 +242,11 @@ springboot环境搭建
 
 ### 分布式Session
 
-分布式多台服务器，用户的session处理？存在的问题，用户的第一个请求落在第一台服务器中，第二个请求落在第二台服务器上，则用户的session信息全部丢失
+分布式多台服务器，用户的session处理？存在的问题，**用户的第一个请求落在第一台服务器中，第二个请求落在第二台服务器上，则用户的session信息全部丢失**
 
-处理：session同步，一台服务器上的session信息同步到另一台服务器上，性能有问题，实现复杂
+处理：**session同步（原生），一台服务器上的session信息同步到另一台服务器上，性能有问题，实现复杂**
 
-**用户登录成功后，服务器生成一个类似于sessionid的东西（token）标识用户，写到cookie中传递给客户端，客户端在随后的访问中都在cookie中上传这个token，服务端拿到token取到用户对应的session信息**
+**用户登录成功后，服务器生成一个类似于sessionid的东西（token）标识用户，写到cookie中传递给客户端，客户端在随后的访问中都在cookie中上传这个token，服务端拿到token取到对应用户的session信息**
 
 **用第三方缓存redis管理session**
 
@@ -243,6 +259,19 @@ springboot环境搭建
 
 实现重新生成token
 
+#### cookie与session的区别
+
+2.1、**保存的位置不同**：cookie保存在浏览器端，session保存在服务端。
+2.2、**使用方式不同**
+cookie如果在浏览器端对cookie进行设置对应的时间，则cookie保存在本地硬盘中，此时如果没有过期，则就可以使用，如果过期则就删除。如果没有对cookie设置时间，则默认关闭浏览器，则cookie就会删除。
+session：我们在请求中，如果发送的请求中存在sessionId，则就会找到对应的session对象，**如果不存在sessionId,则在服务器端就会创建一个session对象，并且将sessionId返回给浏览器**，可以将其放到cookie中，进行传输，**如果浏览器不支持cookie，则应该将其通过encodeURL(sessionID)进行调用，然后放到url中**。
+2.3、**存储内容不同**：cookie只能存储字符串，而session存储结构类似于hashtable的结构，可以存放任何类型。
+2.4、**存储大小**：``cookie最多可以存放4k大小的内容，session则没有限制。
+2.5、**session的安全性要高于cooKie**
+2.6、cookie的session的应用场景：cookie可以用来保存用户的登陆信息，如果删除cookie则下一次用户仍需要重新登录
+session就类似于我们拿到钥匙去开锁，拿到的就是我们个人的信息，一般我们可以在session中存放个人的信息或者购物车的信息。
+2.7、session和cookie的弊端：**cookie的大小受限制，cookie不安全，如果用户禁用cookie则无法使用cookie**。如果过多的依赖session，当很多用户同时登陆的时候，此时服务器压力过大。sessionId存放在cookie中，此时如果对于一些浏览器不支持cookie，此时还需要改写代码，将sessionID放到url中，也是不安全。
+
 问题：springmvc的controller方法里可以带很多参数，**使用mvc框架里的addArgumentResolvers函数给controller里的方法赋值**
 
 ### 内容总结
@@ -254,6 +283,8 @@ http网络上明文传输，输入明文密码，在网络上传输，数据包�
 
 
 ## 实现秒杀功能
+
+![image-20230223112117853](C:\Users\17391\AppData\Roaming\Typora\typora-user-images\image-20230223112117853.png)
 
 用户浏览商品页，点击商品进入商品详情页，点击秒杀，秒杀成功进入订单详情页
 
@@ -295,26 +326,45 @@ http网络上明文传输，输入明文密码，在网络上传输，数据包�
 
 ## 秒杀测压-Jmeter压力测试
 
+![image-20230223112250590](C:\Users\17391\AppData\Roaming\Typora\typora-user-images\image-20230223112250590.png)
+
 ### Jmeter入门
 
 1. https://jmeter.apache.org/
 2. 文档https://jmeter.apache.org/usermanual/index.html
-3. 并发时QPS值，tps值
-4. 聚合报告
+3. 并发一定的数量时查看QPS值，tps值
+4. **聚合报告**
    - throughput吞吐量
 5. **添加线程组**
 6. **添加监听器   聚合报告**
 7. **线程组右键  添加Sampler   HTTP请求**
+8. 步骤
+   1. 创建线程组
+
+
+![image-20230302094740701](C:\Users\17391\AppData\Roaming\Typora\typora-user-images\image-20230302094740701.png)
+
+​		2.HTTP请求默认值
+
+​			![image-20230302095156239](C:\Users\17391\AppData\Roaming\Typora\typora-user-images\image-20230302095156239.png)	
+
+​		3.添加sampler
+
+![image-20230302095248495](C:\Users\17391\AppData\Roaming\Typora\typora-user-images\image-20230302095248495.png)
+
+​		4.查看结果
+
+​			![image-20230302095452014](C:\Users\17391\AppData\Roaming\Typora\typora-user-images\image-20230302095452014.png)		
 
 ### 自定义变量模拟多用户
 
-1. 测试计划    添加配置元件    CSV Data Set Config
+1. 测试计划    添加配置元件    CSV Data Set Config，  **userid,usertoken**
 2. 引用变量${}
 3. **测试获取用户信息**
 
 ### JMeter命令行使用
 
-1. 在Windows上录好jmx
+1. 在Windows上录好jmx    XXX.jmx
 2. 命令行：sh jmeter.sh -n -t XXX.jmx -l result.jtl
 3. 将result.jtl导入Jmeter
 
@@ -327,16 +377,17 @@ http网络上明文传输，输入明文密码，在网络上传输，数据包�
 
 1. 生成1000个用户
 2. 测试秒杀功能
-3. 发现并发的瓶颈主要在于数据库的访问（分库，分表）**大并发核心在数据库的访问（抗压力）**
-   - 解决方法，添加缓存
+3. 发现**并发的瓶颈主要在于数据库的访问（分库，分表）****大并发核心在数据库的访问（抗压力）**
+   - **解决方法，添加缓存**
 
 ### Redis压测工具Redis-benchmark
 
 1. redis-benchmark -h 127.0.0.1 -p 6379 -c 100 -n 100000**100个并发连接, 100000个请求**
 2. redis-benchmark -h 127.0.0.1 -p 6379 -q -d 100       **存取大小为100字节的数据包**
-3. redis-benchmark -t set,lpush -q -n 100000  **十万个请求只测试set和lpush命令**
+3. redis-benchmark -t **set,lpush** -q -n 100000  **十万个请求只测试set和lpush命令**
+3. redis-benchmark -n 100000 -q script load "redis.call('set', 'foo', 'bar')"**测试100000条三种方法的调用**
 
-### spirngboot 打war包放到Tomcat
+### spirngboot 打war包放到Tomcat 
 
 1. 修改pom.xml文件将默认的jar方式改为war：
 
@@ -350,6 +401,8 @@ http网络上明文传输，输入明文密码，在网络上传输，数据包�
    </dependency>
    ```
 
+3. **添加maven-war-plugin插件**
+
 3. **继承SpringBootServletInitializer实现 WebApplicationInitializer重写configure方法：**
 
 4. 菜单 Build -->> build artifacts -->> all artifacts -->> Build
@@ -362,9 +415,11 @@ http网络上明文传输，输入明文密码，在网络上传输，数据包�
 
 ## 页面优化技术
 
+![image-20230223112358125](C:\Users\17391\AppData\Roaming\Typora\typora-user-images\image-20230223112358125.png)
+
 ### 页面缓存+url缓存+对象缓存
 
-1. 页面缓存粒度最大，对象缓存粒度最小
+1. **页面缓存粒度最大，对象缓存粒度最小**
 2. **取缓存       手动渲染魔板thymeleafViewResolver      结果输出**
 3. 减少数据从服务端的下载
 4. **页面缓存**，多用户访问界面相同
@@ -374,11 +429,35 @@ http网络上明文传输，输入明文密码，在网络上传输，数据包�
    2. 一个service引用的时候一定要引用别人的service,  别人的service里有可能调用缓存
    3. **数据发生更新一定也要把缓存更新掉，先修改数据库，再修改缓存**
 
+#### 页面缓存
+
+以商品列表页为例，没有参数，所有用户访问的一样
+
+1. **取缓存**，在redis中获取缓存，缓存过期时间不能设置过长
+2. **手动渲染模板**
+3. **结果输出** 
+
+#### URL缓存
+
+**以商品详情页为例，加上商品ID参数**
+
+1. 与页面缓存区别不大：步骤如下
+   1. 取缓存，在redis中获取缓存，缓存过期时间不能设置过长
+   2. 无缓存则手动渲染模板，并加入缓存中
+   3. 结果输出 
+2. 不同商品的详情页不同
+
+#### 对象缓存
+
+以用户信息为例
+
+**先在redis查找是否有用户信息，有的话直接返回，否则从数据库中查找，将查找结果缓存到redis中，减少对数据库的访问**。
+
 ### 页面静态化，前后端分离
 
-1. 传统jsp动态，thymeleaf动态，**静态化，纯html**通过**js,ajax请求服务端**拿到**数据渲染页面**，可以将**HTML文件缓存在客户端**，**页面数据**不需要重复下载，只需要**下载动态数据**，从本地缓存获取页面，**极大减少数据流量**
+1. 传统jsp动态，thymeleaf动态，**静态化，纯html**通过**js,ajax请求服务端**拿到**数据渲染页面**，可以将**HTML文件缓存在客户端**，**页面静态数据**不需要重复下载，只需要**下载动态数据**，从本地缓存获取页面，**极大减少数据流量**
 2. **常用技术AngularJS ,vue.js**————本项目用**Jqury模拟获取动态数据**
-3. 优点：**利用浏览器的缓存** 
+3. 优点：**利用浏览器的缓存** ，**将页面直接缓存到用户的浏览器中**
 
 ### 静态资源优化
 
@@ -390,17 +469,14 @@ http网络上明文传输，输入明文密码，在网络上传输，数据包�
 
 CDN的全称是Content Delivery Network，即[内容分发网络](https://baike.baidu.com/item/内容分发网络/4034265)。CDN是构建在现有网络基础之上的**智能虚拟网络**，**依靠部署在各地的边缘服务器**，通过**中心平台的负载均衡、内容分发、调度**等功能模块，使**用户就近获取所需内容**，**降低网络拥塞，提高用户访问响应速度和命中率**。CDN的关键技术主要有**内容存储和分发技术**
 
-### nginx
-
-Nginx是一款[轻量级](https://baike.baidu.com/item/轻量级/10002835)的[Web](https://baike.baidu.com/item/Web/150564) 服务器/[反向代理](https://baike.baidu.com/item/反向代理/7793488)服务器及[电子邮件](https://baike.baidu.com/item/电子邮件/111106)（IMAP/POP3）代理服务器，在BSD-like 协议下发行。其特点是占有内存少，[并发](https://baike.baidu.com/item/并发/11024806)能力强，事实上nginx的并发能力在同类型的网页服务器中表现较好，中国大陆使用nginx网站用户有：百度、[京东](https://baike.baidu.com/item/京东/210931)、[新浪](https://baike.baidu.com/item/新浪/125692)、[网易](https://baike.baidu.com/item/网易/185754)、[腾讯](https://baike.baidu.com/item/腾讯/112204)、[淘宝](https://baike.baidu.com/item/淘宝/145661)等
-
 ### 问题：
 
 - **多次下订单导致商品库存小于0**
-  - 解决：**更新数据库时判断库存是否大于0，大于才可以更新商品信息，然后下订单**
+  - 解决：**减库存更新数据库时判断库存是否大于0，大于才可以更新商品信息，然后下订单**
 
-- **一个用户同时发出两个请求，显示都没有秒杀到，就可以同时减库存，下订单，导致一个用户秒杀到两种商品**
-  - 解决：通过数据库解决，利用数据库的**唯一索引**，防止用户插入重复记录，做秒杀的时候，**提交表单之前会生成一个验证码**，在miaosha_order表上建一个唯一索引user_id和goods_id，保证商品不会超卖
+- **一个用户同时发出两个请求，显示都没有秒杀到，就可以同时减库存，下订单，导致一个用户秒杀到两个相同的商品**
+  - 解决：通过数据库解决，利用数据库的**唯一索引**，防止用户插入重复记录，
+  - 做秒杀的时候，**提交表单之前会生成一个验证码**，在miaosha_order表上建一个唯一索引user_id和goods_id，保证商品不会超卖
   - **生成订单的时候，将订单写到缓存中，不需要查数据库，只需要查缓存，优化性能**
 - **解决超卖：**
   - **数据库表加唯一索引，防止用户重复购买**
@@ -410,21 +486,23 @@ Nginx是一款[轻量级](https://baike.baidu.com/item/轻量级/10002835)的[We
 
 **并发大瓶颈在数据库的访问，解决方法加缓存。**
 
-缓存有很多，用户角度：浏览器端发起请求，在浏览器端做页面静态化，将页面缓存在用户的浏览器端，请求到达网站之前，在网络中部署CDN节点，让请求首先访问CDN，通过CDN到网站的话，网站可以再做一次缓存，比如nginx也可以加缓存，如果Nginx也没有缓存，应用程序里的页面缓存，细粒度一点就是对象缓存，最后一层才是数据库，通过层层访问数据库缓存，逐步削减到达数据库的请求数量，这样才能保障网站在大并发情况下，扛得住压力，不同粒度，不同层面缓存减轻数据库的压力，采用缓存后肯定会产生一些数据的不一致，在整个过程中做一个平衡，在满足数据一致性的前提下，做一个缓存。
-
-
+缓存有很多，用户角度：浏览器端发起请求，在浏览器端做页面静态化，将页面缓存在用户的浏览器端，请求到达网站之前，在网络中部署CDN节点，让请求首先访问CDN，通过CDN到网站的话，网站可以再做一次缓存，比如nginx也可以加缓存，如果Nginx也没有缓存，应用程序里的页面缓存，细粒度一点就是对象缓存，最后一层才是数据库，通过层层访问数据库缓存，**逐步削减到达数据库的请求数量**，这样才能保障网站在大并发情况下，扛得住压力，不同粒度，不同层面缓存减轻数据库的压力，采用缓存后肯定会产生一些数据的不一致，在 整个过程中做一个平衡，在满足数据一致性的前提下，做一个缓存。
 
 ## 秒杀接口优化
 
-**思路：减少数据库访问**
+  ![image-20230223112528655](C:\Users\17391\AppData\Roaming\Typora\typora-user-images\image-20230223112528655.png)
+
+![image-20230223112601062](C:\Users\17391\AppData\Roaming\Typora\typora-user-images\image-20230223112601062.png)
+
+**思路：减少数据库访问**（核心）
 
 1. **系统初始化，将商品库存数量加载到redis**
-2. 收到请求，**redis预减库存，库存不足，直接返回**，否则进入3
-3. 请求入队，立即返回排队中
+2. 收到多个请求，**redis预减库存，库存不足，直接返回**失败，否则进入3
+3. 请求入队，**立即返回排队中**
 4. **请求出队，生成订单，减少库存**
 5. **客户端轮询，是否秒杀成功**
 
-### redis预减库存减少数据库访问
+### Redis预减库存减少数据库访问
 
 ### 内存标记减少redis访问
 
@@ -434,9 +512,9 @@ Nginx是一款[轻量级](https://baike.baidu.com/item/轻量级/10002835)的[We
 
 1. 同步下单改为异步下单
 
-### RabbitMQ队列缓存，异步下单，增强用户体验
+#### RabbitMQ队列缓存，异步下单，增强用户体验
 
-#### RabbitMQ安装与spring集成
+### RabbitMQ安装与spring集成
 
 - 安装erlang,大并发（是一门语言）
 
@@ -476,7 +554,7 @@ Nginx是一款[轻量级](https://baike.baidu.com/item/轻量级/10002835)的[We
 
 - 集成
 
-  1. 添加依赖spring-boot-starter-amqp
+  1. 添加依赖spring-boot-starter-amqp，在pom.xml文件中添加配置
   2. 创建消息接受者MQReceiver(四种交换机Exchange模式)https://blog.csdn.net/qq_39240270/article/details/94202815
      1. 直连交换机：Direct exchange
      2. 扇形交换机：Fanout exchange
@@ -487,28 +565,34 @@ Nginx是一款[轻量级](https://baike.baidu.com/item/轻量级/10002835)的[We
 
 ### Nginx水平扩展
 
+Nginx是一款[轻量级](https://baike.baidu.com/item/轻量级/10002835)的[Web](https://baike.baidu.com/item/Web/150564) 服务器/[反向代理](https://baike.baidu.com/item/反向代理/7793488)服务器及[电子邮件](https://baike.baidu.com/item/电子邮件/111106)（IMAP/POP3）代理服务器，在BSD-like 协议下发行。其特点是占有内存少，[并发](https://baike.baidu.com/item/并发/11024806)能力强，事实上nginx的并发能力在同类型的网页服务器中表现较好，中国大陆使用nginx网站用户有：百度、[京东](https://baike.baidu.com/item/京东/210931)、[新浪](https://baike.baidu.com/item/新浪/125692)、[网易](https://baike.baidu.com/item/网易/185754)、[腾讯](https://baike.baidu.com/item/腾讯/112204)、[淘宝](https://baike.baidu.com/item/淘宝/145661)等
+
 ### 压测
 
 ### 小插曲
 
 1. **分库分表中间件mycat**
 
-## 安全优化
+## 7. 安全优化
+
+![image-20230223112657714](C:\Users\17391\AppData\Roaming\Typora\typora-user-images\image-20230223112657714.png)
 
 ### 秒杀接口地址隐藏
 
 **秒杀真正开始之前，获取不到秒杀地址**
 
-1. 秒杀开始之前，先去请求接口获取秒杀地址
+1. 秒杀开始之前，**先去请求接口获取秒杀地址**
    - 接口改造，带上PathVariable参数
    - **添加生成地址的接口**
    - 秒杀收到请求，先验证PathVariable
 
 ### 数学公式验证码
 
+点击秒杀之前，先输入验证码，分散用户的请求
+
 **功能：防止机器人，将请求分散开**
 
-1. 生成图形验证码接口 
+1. 添加生成图形验证码接口 
 2. 获取秒杀路径的时候，验证验证码
 3. ScriptEngine使用
 
@@ -517,7 +601,7 @@ Nginx是一款[轻量级](https://baike.baidu.com/item/轻量级/10002835)的[We
 1. **限制某一个接口被某一用户在一分钟内访问多少次**
 2. **放缓存里做，次数写到缓存里，给数据加一个有效期，访问一次，数字加1，超过限制次数**，返回失败
 3. **封装通用访问次数判断**
-4. **写一个拦截器，用注解封装**
+4. **写一个拦截器，用注解封装**——用拦截器减少对业务侵入
 
 - ```
   ThreadLocal//与当前线程绑定
@@ -530,10 +614,10 @@ Nginx是一款[轻量级](https://baike.baidu.com/item/轻量级/10002835)的[We
 1. 内存优化
 2. 并发优化
    1. 影响性能参数
-      - maxConnections(NIO,IO多路复用模型)，最大10000，默认8192；APR模式缩减到1024
+      - **maxConnections**(NIO,IO多路复用模型)，最大10000，默认8192；APR模式缩减到1024
       - acceptCount，新来的请求来不及处理放队列，默认值100
-      - maxThreads默认值200工作线程数
-      - minSpareThreads最小空闲数，空闲线程数
+      - **maxThreads**默认值200工作线程数
+      - **minSpareThreads**最小空闲数，空闲线程数
 3. APR优化（tomcat使用apr连接器）https://cloud.tencent.com/developer/article/1702345
 
 ### Nginx优化[nginx](http://nginx.org/en/)配置文档有优先级
